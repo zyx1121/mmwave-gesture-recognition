@@ -70,7 +70,6 @@ class Console(cmd.Cmd):
     while True:
       frame = self.mmwave.get_frame()
       frame_tlv = self.mmwave.parse_tlv(frame)
-      print(f'{frame_tlv}\n')
 
       plt.clf()
       plt.xlim(-0.5, 0.5)
@@ -78,9 +77,12 @@ class Console(cmd.Cmd):
 
       x, y = frame_tlv['tlv_x'], frame_tlv['tlv_y']
 
-      plt.scatter(x, y, s=16, c='r')
+      print(f'x:{x} y:{y}\n')
 
-      plt.pause(0.01)
+      plt.plot(x, y, 'o', color='red')
+      plt.show()
+
+      plt.pause(0.005)
 
   def do_exit(self, args):
     return True

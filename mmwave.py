@@ -155,16 +155,16 @@ class mmWave:
     tlv_azimuth = []
     tlv_elevation = []
 
-    tlv_data = []
-
     header = self.parse_header(frame)
+
+    offset = 8
 
     if tlv_type == 1:
       for obj in range(header['num_det_obj']):
-        x = struct.unpack('<f', codecs.decode(binascii.hexlify(frame[tlv_start + 8  : tlv_start + 12 : 1]), 'hex'))[0]
-        y = struct.unpack('<f', codecs.decode(binascii.hexlify(frame[tlv_start + 12 : tlv_start + 16 : 1]), 'hex'))[0]
-        z = struct.unpack('<f', codecs.decode(binascii.hexlify(frame[tlv_start + 16 : tlv_start + 20 : 1]), 'hex'))[0]
-        v = struct.unpack('<f', codecs.decode(binascii.hexlify(frame[tlv_start + 20 : tlv_start + 24 : 1]), 'hex'))[0]
+        x = struct.unpack('<f', codecs.decode(binascii.hexlify(frame[tlv_start+offset    : tlv_start+offset+4  : 1]), 'hex'))[0]
+        y = struct.unpack('<f', codecs.decode(binascii.hexlify(frame[tlv_start+offset+4  : tlv_start+offset+8  : 1]), 'hex'))[0]
+        z = struct.unpack('<f', codecs.decode(binascii.hexlify(frame[tlv_start+offset+8  : tlv_start+offset+12 : 1]), 'hex'))[0]
+        v = struct.unpack('<f', codecs.decode(binascii.hexlify(frame[tlv_start+offset+12 : tlv_start+offset+16 : 1]), 'hex'))[0]
 
         detected_range = math.sqrt(x**2 + y**2 + z**2)
 
@@ -192,7 +192,7 @@ class mmWave:
         tlv_azimuth.append(detected_azimuth)
         tlv_elevation.append(detected_elevation)
 
-        tlv_data.append([x, y])
+        offset += 16
 
     return {'tlv_x': tlv_x, 'tlv_y': tlv_y}
 
