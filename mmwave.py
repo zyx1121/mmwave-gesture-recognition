@@ -41,6 +41,10 @@ class uart:
     self.port.close()
     self.port.open()
 
+  def clear(self):
+    self.port.reset_input_buffer()
+    self.port.reset_output_buffer()
+
   def write(self, data):
     self.port.write(data)
     return self.port.readline()
@@ -123,6 +127,10 @@ class mmWave:
     self.config_file = config_file
     return True
 
+  def clear_frame_buffer(self):
+    self.data_port.reset()
+    self.data_port.clear()
+
   def get_frame(self):
     MAGIC_NUMBER = b'\x02\x01\x04\x03\x06\x05\x08\x07'
 
@@ -184,8 +192,8 @@ class mmWave:
         else:
           detected_elevation = math.degrees(math.atan(z / math.sqrt(x**2 + y**2)))
 
-        tlv_x.append(x)
-        tlv_y.append(y)
+        tlv_x.append(round(x, 3))
+        tlv_y.append(round(y, 3))
         tlv_z.append(z)
         tlv_v.append(v)
         tlv_range.append(detected_range)
