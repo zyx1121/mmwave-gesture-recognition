@@ -124,6 +124,8 @@ class mmWave:
       if 'sensorStart' not in line:
         time.sleep(0.01)
 
+    print(f'{Fore.GREEN}設定完成\n')
+
     self.config_file = config_file
     return True
 
