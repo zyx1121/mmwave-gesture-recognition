@@ -1,5 +1,3 @@
-<br>
-
 # 毫米波雷達 AI 手勢辨識
 Gesture Recognition Using mmWave Sensor - TI AWR1642
 
