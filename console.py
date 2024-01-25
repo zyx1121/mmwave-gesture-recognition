@@ -1,12 +1,13 @@
 import os
 import cmd
 import colorama
-import matplotlib.pyplot as plt
 import numpy as np
 import datetime
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 
 from keras.models import Sequential
-from keras.layers import LSTM, Dense
+from keras.layers import LSTM, Dense, Conv2D, MaxPooling2D, Flatten
 from keras.utils import to_categorical
 from keras.models import load_model
 from keras.preprocessing.sequence import pad_sequences
@@ -16,16 +17,21 @@ from mmwave import mmWave
 
 colorama.init(autoreset=True)
 
+mpl.use('Qt5Agg')
+mpl.rcParams['toolbar'] = 'None'
+
 class Console(cmd.Cmd):
   def __init__(self):
     super().__init__()
 
+    os.system('cls' if os.name == 'nt' else 'clear')
+
     self.prompt = f'{Fore.BLUE}mmWave> {Fore.RESET}'
+    self.exit = False
+
     self.mmwave_init()
 
   def mmwave_init(self):
-    self.mmwave = None
-
     print(f'\n{Fore.CYAN}尋找裝置...')
     ports = mmWave.find_ports()
 
@@ -33,13 +39,9 @@ class Console(cmd.Cmd):
       print(f'{Fore.RED}找不到裝置.')
       return
 
-    if len(ports) > 2:
-      print(f'{Fore.YELLOW}找到多個裝置. 使用前兩個裝置: {ports[:2]}')
-      ports = ports[:2]
-
     cli_port, data_port = ports[0], ports[1]
 
-    self.mmwave = mmWave(cli_port, data_port, cli_rate=115200, data_rate=921600)
+    self.mmwave = mmWave(ports[0], ports[1], cli_rate=115200, data_rate=921600)
     self.mmwave.connect()
     print(f'{Fore.GREEN}連線成功 CLI: {cli_port}  DATA: {data_port}\n')
 
@@ -47,42 +49,34 @@ class Console(cmd.Cmd):
     if args == '':
       args = 'profile'
 
-    config_dir = os.path.join(os.path.dirname(__file__), 'profiles')
-    config = os.path.join(config_dir, f'{args}.cfg')
-
     print(f'\n{Fore.CYAN}設定裝置...\n')
-    mmwave_configured = self.mmwave.send_configure(config)
+    mmwave_configured = self.mmwave.send_configure(f'{args}.cfg')
     if not mmwave_configured:
       return
 
-  def do_test(self, args):
-    print(f'\n{Fore.CYAN}監聽資料...\n')
-
-    while True:
-      frame = self.mmwave.get_frame()
-      frame_tlv = self.mmwave.parse_tlv(frame)
-
-      print(f'x:{frame_tlv["tlv_x"]} y:{frame_tlv["tlv_y"]}\n')
-
   def do_plot(self, args):
-    print(f'\n{Fore.CYAN}繪製圖表...\n')
+    self.mmwave.clear_frame_buffer()
 
     plt.ion()
     plt.subplots()
+    plt.xlim(-0.5, 0.5)
+    plt.ylim(0.0, 1.0)
+    plt.scatter([None], [None], s=12, c='red')
 
     while True:
       frame = self.mmwave.get_frame()
-      frame_tlv = self.mmwave.parse_tlv(frame)
+      tlv = self.mmwave.parse_tlv(frame)
 
-      plt.clf()
+      x, y = tlv['tlv_x'], tlv['tlv_y']
+
+      if not x:
+        continue
+
+      print(f'x:{x} y:{y}')
+
       plt.xlim(-0.5, 0.5)
       plt.ylim(0.0, 1.0)
-
-      x, y = frame_tlv['tlv_x'], frame_tlv['tlv_y']
-
-      print(f'x:{x} y:{y}\n')
-
-      plt.plot(x, y, 'o', color='red')
+      plt.scatter(x, y, s=12, c='red')
 
       plt.pause(0.005)
 
@@ -95,9 +89,6 @@ class Console(cmd.Cmd):
     data_dir = os.path.join(os.path.dirname(__file__), 'records')
 
     self.mmwave.clear_frame_buffer()
-
-    # plt.ion()
-    # plt.subplots()
 
     for t in range(int(times)):
       print(f'\n{Fore.CYAN}錄製資料... {t+1}\n')
@@ -132,13 +123,6 @@ class Console(cmd.Cmd):
         buffer.append([x, y])
         prev_x = x
 
-        # plt.clf()
-        # plt.xlim(-0.5, 0.5)
-        # plt.ylim(0.0, 1.0)
-
-        # plt.plot(x, y, 'o', color='red')
-        # plt.pause(0.005)
-
       # 資料不足 無法儲存
       if len(buffer) < 4:
         print(f'{Fore.RED}資料不足...')
@@ -152,8 +136,14 @@ class Console(cmd.Cmd):
 
       np.save(data, buffer)
 
-  def do_predict(self, args):
-    model = load_model('model.keras')
+  def do_predict(self, args=''):
+    if args == '':
+      args = 'Conv2D'
+    elif args not in ['LSTM', 'Conv2D']:
+      print(f'{Fore.RED}只能預測 LSTM 或 Conv2D')
+      return
+
+    model = load_model(f'models/{args}.keras')
 
     while True:
       print(f'\n{Fore.CYAN}觀察手勢...')
@@ -214,7 +204,13 @@ class Console(cmd.Cmd):
       print(f'{Fore.GREEN}手勢機率：{prediction.max()}')
       print(f'{Fore.GREEN}預測結果：{gestures[predicted_gesture]}')
 
-  def do_train(self, args):
+  def do_train(self, args=''):
+    if args == '':
+      args = 'Conv2D'
+    elif args not in ['LSTM', 'Conv2D']:
+      print(f'{Fore.RED}只能訓練 LSTM 或 Conv2D')
+      return
+
     print(f'\n{Fore.CYAN}訓練模型...\n')
 
     # 定義標籤到數字的映射
@@ -243,32 +239,35 @@ class Console(cmd.Cmd):
     x_train = np.array(data)
     y_train = np.array(labels)
 
-    # 儲存資料和標籤
-    # np.save('x_train.npy', x_train)
-    # np.save('y_train.npy', y_train)
-
-    # 讀取資料和標籤
-    # x_train = np.load('x_train.npy')
-    # y_train = np.load('y_train.npy')
-
     # 將標籤轉換成 one-hot 編碼
     y_train = to_categorical(y_train)
 
-    # 建立模型
-    model = Sequential()
-    model.add(LSTM(128, input_shape=(x_train.shape[1], x_train.shape[2])))
-    model.add(Dense(y_train.shape[1], activation='softmax'))
+    # 建立 LSTM 模型
+    if args == 'LSTM':
+      model = Sequential()
+      model.add(LSTM(128, input_shape=(x_train.shape[1], x_train.shape[2])))
+      model.add(Dense(y_train.shape[1], activation='softmax'))
+
+    # 建立 CNN 模型
+    elif args == 'Conv2D':
+      x_train = x_train.reshape((-1, 32, 2, 1))
+      model = Sequential()
+      model.add(Conv2D(32, kernel_size=(3, 1), activation='relu', input_shape=(32, 2, 1)))
+      model.add(Flatten())
+      model.add(Dense(y_train.shape[1], activation='softmax'))
 
     # 編譯模型
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
     # 訓練模型
-    model.fit(x_train, y_train, epochs=300, batch_size=32, validation_split=0.2)
+    model.fit(x_train, y_train, epochs=500, batch_size=32, validation_split=0.2)
 
-    model.save('test.keras')
+    model.save(os.path.join('models', f'{args}.keras'))
 
-    print(f'\n{Fore.GREEN}訓練完成 model.keras\n')
+    print(f'\n{Fore.GREEN}訓練完成 {args}.keras\n')
 
+  def do_clear(self, args):
+    os.system('cls' if os.name == 'nt' else 'clear')
 
   def do_exit(self, args):
     return True
