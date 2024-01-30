@@ -19,7 +19,7 @@ Gesture Recognition Using mmWave Sensor - TI AWR1642
 
 ## 指令功能
 
-- `cfg` - 將 `profiles/profile.cfg` 設定傳送到板子
+- `cfg` - 將 `profile.cfg` 設定傳送到板子
 - `record [gesture] [times]` - 錄製 `[gesture]` 資料 `[times]` 次儲存至 `records/[gesture]_[date].npy`
 - `train` - 訓練模型
 - `predict` - 實時抓取雷達資料丟進模型預測手勢
