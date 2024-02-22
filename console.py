@@ -63,22 +63,31 @@ class Console(cmd.Cmd):
     plt.ylim(0.0, 1.0)
     plt.scatter([None], [None], s=12, c='red')
 
+    count = 0
+
     while True:
       frame = self.mmwave.get_frame()
       tlv = self.mmwave.parse_tlv(frame)
 
       x, y = tlv['tlv_x'], tlv['tlv_y']
 
-      if not x:
-        continue
-
-      print(f'x:{x} y:{y}')
-
+      plt.clf()
       plt.xlim(-0.5, 0.5)
       plt.ylim(0.0, 1.0)
       plt.scatter(x, y, s=12, c='red')
-
       plt.pause(0.005)
+
+      print(f'x:{x} y:{y}')
+
+      if not x:
+        count += 1
+        if count > 30:
+          plt.close()
+          print(f'{Fore.RED}超時自動退出\n')
+          return
+        continue
+
+      count = 0
 
   def do_record(self, args=''):
     if args == '':
@@ -138,7 +147,7 @@ class Console(cmd.Cmd):
 
   def do_predict(self, args=''):
     if args == '':
-      args = 'Conv2D'
+      args = 'LSTM'
     elif args not in ['LSTM', 'Conv2D']:
       print(f'{Fore.RED}只能預測 LSTM 或 Conv2D')
       return
@@ -147,6 +156,7 @@ class Console(cmd.Cmd):
 
     while True:
       print(f'\n{Fore.CYAN}觀察手勢...')
+      count = 0
       flag = -1
       buffer = []
       prev_x = None  # Store the previous x value
@@ -156,6 +166,12 @@ class Console(cmd.Cmd):
         frame_tlv = self.mmwave.parse_tlv(frame)
 
         x, y = frame_tlv['tlv_x'], frame_tlv['tlv_y']
+
+        if not x:
+          count += 1
+          if count > 90:
+            print(f'{Fore.RED}超時自動退出\n')
+            return
 
         if frame_tlv['tlv_x'] == []:
           if flag == 0:
@@ -206,7 +222,7 @@ class Console(cmd.Cmd):
 
   def do_train(self, args=''):
     if args == '':
-      args = 'Conv2D'
+      args = 'LSTM'
     elif args not in ['LSTM', 'Conv2D']:
       print(f'{Fore.RED}只能訓練 LSTM 或 Conv2D')
       return
