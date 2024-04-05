@@ -1,0 +1,5 @@
+colorama==0.4.6
+keras==2.15.0
+matplotlib==3.8.2
+numpy==1.26.4
+pyserial==3.5
