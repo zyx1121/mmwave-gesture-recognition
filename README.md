@@ -50,13 +50,13 @@ Flash the official demo firmware onto the AWR1642 development board before start
 
 ## Command Functions
 
-- `cfg` : Transmits settings from `profile.cfg` to the device.
+- `cfg` : Transmits settings from profile.cfg to the device.
 
-- `record [gesture] [times]` : Records the gesture `[gesture]` data `[times]` times and saves it to `records/[gesture]_[date].npy`.
+- `record` `[gesture]` `[times]` : Records the gesture [gesture] data [times] times and saves it to records/[gesture]_[date].npy.
 
-- `train [model]` : Trains the model, with a choice of either `Conv2D` or `LSTM`.
+- `train` `[model]` : Trains the model, with a choice of either Conv2D or LSTM.
 
-- `predict [model]` : Captures real-time radar data and predicts gestures using the selected model ( `Conv2D` or `LSTM` ).
+- `predict` `[model]` : Captures real-time radar data and predicts gestures using the selected model (Conv2D or LSTM).
 
 - `exit` : Exits the console.
 
