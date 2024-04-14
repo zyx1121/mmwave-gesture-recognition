@@ -1,57 +1,65 @@
-# 毫米波雷達 AI 手勢辨識
+# mmWave Radar AI Gesture Recognition
 
 ###### Gesture Recognition Using mmWave Sensor - TI AWR1642
 
-提供了 `設置`、`紀錄`、`訓練` 與 `預測` 功能，設定並收集 AWR1642 的毫米波雷達資料，即可辨識特定手勢等：
-- 上揮
-- 下揮
-- 左揮
-- 右揮
-- 順時針旋轉
-- 逆時針旋轉
+This project provides Setup, Record, Train, and Predict functionalities to identify specific gestures using the AWR1642 mmWave radar data. Supported gestures include:
 
-> 也可以透過 `紀錄` 功能錄製手勢並訓練。
+- Swipe Up
+- Swipe Down
+- Swipe Left
+- Swipe Right
+- Clockwise Rotation
+- Counterclockwise Rotation
 
-## 前置作業
+> The `Record` feature allows you to capture gestures for training.
 
-應在 AWR1642 開發板上燒入官方提供的 Demo 程式
-- [AWR1642BOOST 初始設置](https://gist.github.com/zyx1121/0756055fa9138aec81617501e2e5f263)
+## Prerequisites
 
-## 開始
+Flash the official demo firmware onto the AWR1642 development board before starting.
 
-- 下載並進入專案資料夾
-  - `git clone https://github.com/zyx1121/mmwave.gesture.recognition`
-  - `cd mmwave.gesture.recognition`
+- [Initial Setup for AWR1642BOOST](https://gist.github.com/zyx1121/0756055fa9138aec81617501e2e5f263)
 
-- 安裝依賴庫
-  - `pip install -r requirements.txt`
+## Getting Started
 
-- 進入 console 即可開始
-  - `python console.py`
+- Clone the repository and cd to the project directory
+  ```sh
+  git clone https://github.com/zyx1121/mmwave.gesture.recognition && cd mmwave.gesture.recognition
+  ```
 
-## 專案結構
+- Install dependencies
+  ```sh
+  pip install -r requirements.txt
+  ```
+
+- Launch the console to begin
+  ```sh
+  python console.py
+  ```
+
+## Project Structure
 
 - `mmwave.gesture.recognition/`
-  
   - `models/`
     - `Conv2D.keras`
     - `LSTM.keras`
-      
   - `records/`
-    - `[label]_[%m%d%H%M%S]`
-      
+    - `[label]_[%m%d%H%M%S].npy`
   - `console.py`
   - `mmwave.py`
   - `profile.cfg`
 
-## 指令功能
+## Command Functions
 
-- `cfg` : 將 `profile.cfg` 設定傳送到板子。
+- `cfg` : Transmits settings from `profile.cfg` to the device.
 
-- `record [gesture] [times]` : 錄製 `[gesture]` 資料 `[times]` 次儲存至 `records/[gesture]_[date].npy`。
+- `record [gesture] [times]` : Records the gesture `[gesture]` data `[times]` times and saves it to `records/[gesture]_[date].npy`.
 
-- `train [model]` : 訓練模型，預模型可選擇 `Conv2D` 或 `LSTM`。
+- `train [model]` : Trains the model, with a choice of either `Conv2D` or `LSTM`.
 
-- `predict [model]` : 實時抓取雷達資料丟進模型預測手勢，可選擇 `Conv2D` 或 `LSTM`。
+- `predict [model]` : Captures real-time radar data and predicts gestures using the selected model ( `Conv2D` or `LSTM` ).
 
-- `exit` : 退出控制台。
+- `exit` : Exits the console.
+
+## License
+
+This project is licensed under the MIT License, which permits commercial use, modification, distribution, and private use.
