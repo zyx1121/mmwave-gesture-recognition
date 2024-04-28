@@ -7,7 +7,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 from keras.models import Sequential
-from keras.layers import LSTM, Dense, Conv2D, MaxPooling2D, Flatten
+from keras.layers import LSTM, Dense, Conv2D, Flatten
 from keras.utils import to_categorical
 from keras.models import load_model
 from keras.preprocessing.sequence import pad_sequences
@@ -26,7 +26,7 @@ class Console(cmd.Cmd):
 
     os.system('cls' if os.name == 'nt' else 'clear')
 
-    self.prompt = f'{Fore.BLUE}mmWave> {Fore.RESET}'
+    self.prompt = f'{Fore.BLUE}AWR1642 > {Fore.RESET}'
     self.exit = False
 
     self.mmwave_init()
@@ -37,13 +37,17 @@ class Console(cmd.Cmd):
 
     if len(ports) < 2:
       print(f'{Fore.RED}找不到裝置.')
-      return
+      exit(0)
 
     cli_port, data_port = ports[0], ports[1]
 
     self.mmwave = mmWave(ports[0], ports[1], cli_rate=115200, data_rate=921600)
     self.mmwave.connect()
     print(f'{Fore.GREEN}連線成功 CLI: {cli_port}  DATA: {data_port}\n')
+
+  def validate_args(self, args, valid_args):
+    if args not in valid_args:
+      raise Exception(f'{Fore.RED}參數必須是 {valid_args}')
 
   def do_cfg(self, args=''):
     if args == '':
@@ -61,11 +65,24 @@ class Console(cmd.Cmd):
     plt.subplots()
     plt.xlim(-0.5, 0.5)
     plt.ylim(0.0, 1.0)
-    plt.scatter([None], [None], s=12, c='red')
+    plt.scatter([None], [None], s=20, c='red')
+    plt.grid(True)
 
     count = 0
+    is_quit = {'status': False}
+
+    def on_key(event):
+      if event.key == 'q':
+        is_quit['status'] = True
+        plt.close()
+
+    plt.connect('key_press_event', on_key)
 
     while True:
+      if is_quit['status']:
+        print(f'{Fore.RED}用戶退出\n')
+        return
+
       frame = self.mmwave.get_frame()
       tlv = self.mmwave.parse_tlv(frame)
 
@@ -74,7 +91,8 @@ class Console(cmd.Cmd):
       plt.clf()
       plt.xlim(-0.5, 0.5)
       plt.ylim(0.0, 1.0)
-      plt.scatter(x, y, s=12, c='red')
+      plt.scatter(x, y, s=20, c='red')
+      plt.grid(True)
       plt.pause(0.005)
 
       print(f'x:{x} y:{y}')
@@ -120,10 +138,10 @@ class Console(cmd.Cmd):
         else:
           flag = 4
 
-        if prev_x is not None and (abs(x - prev_x) > 0.25).any():  # Compare current x with previous x
+        if prev_x is not None and (abs(x - prev_x) > 0.3).any():  # Compare current x with previous x
           continue  # Discard the current x value
 
-        if prev_y is not None and (abs(y - prev_y) > 0.25).any():
+        if prev_y is not None and (abs(y - prev_y) > 0.3).any():
           continue
 
         x = round(np.mean(x, axis=0), 3)
@@ -148,11 +166,12 @@ class Console(cmd.Cmd):
   def do_predict(self, args=''):
     if args == '':
       args = 'LSTM'
-    elif args not in ['LSTM', 'Conv2D']:
-      print(f'{Fore.RED}只能預測 LSTM 或 Conv2D')
-      return
+
+    self.validate_args(args, ['LSTM', 'Conv2D'])
 
     model = load_model(f'models/{args}.keras')
+
+    self.mmwave.clear_frame_buffer()
 
     while True:
       print(f'\n{Fore.CYAN}觀察手勢...')
@@ -223,9 +242,8 @@ class Console(cmd.Cmd):
   def do_train(self, args=''):
     if args == '':
       args = 'LSTM'
-    elif args not in ['LSTM', 'Conv2D']:
-      print(f'{Fore.RED}只能訓練 LSTM 或 Conv2D')
-      return
+
+    self.validate_args(args, ['LSTM', 'Conv2D'])
 
     print(f'\n{Fore.CYAN}訓練模型...\n')
 
@@ -248,6 +266,8 @@ class Console(cmd.Cmd):
       data.append(content)
       labels.append(label_to_num[label])
 
+      print(f'{Fore.GREEN}讀取檔案 {filename}')
+
     # 將資料裁剪或填充到相同的長度
     data = pad_sequences(data, maxlen=32, dtype='float32')
 
@@ -257,6 +277,8 @@ class Console(cmd.Cmd):
 
     # 將標籤轉換成 one-hot 編碼
     y_train = to_categorical(y_train)
+
+    print(f'{Fore.GREEN}資料準備完成\n')
 
     # 建立 LSTM 模型
     if args == 'LSTM':
@@ -272,11 +294,15 @@ class Console(cmd.Cmd):
       model.add(Flatten())
       model.add(Dense(y_train.shape[1], activation='softmax'))
 
+    print(f'{Fore.GREEN}建立模型 {args}\n')
+
     # 編譯模型
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
+    print(f'{Fore.GREEN}開始訓練模型 {args}\n')
+
     # 訓練模型
-    model.fit(x_train, y_train, epochs=500, batch_size=32, validation_split=0.2)
+    model.fit(x_train, y_train, epochs=300, batch_size=32, validation_split=0.2)
 
     model.save(os.path.join('models', f'{args}.keras'))
 
@@ -289,4 +315,8 @@ class Console(cmd.Cmd):
     return True
 
 if __name__ == '__main__':
+  try:
     Console().cmdloop()
+  except KeyboardInterrupt:
+    print(f'\n{Fore.RED}用戶退出')
+    exit(0)
