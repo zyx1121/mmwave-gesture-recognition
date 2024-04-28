@@ -25,7 +25,7 @@ Flash the official demo firmware onto the AWR1642 development board before start
 
 - Clone the repository and cd to the project directory
   ```sh
-  git clone https://github.com/zyx1121/mmwave.gesture.recognition && cd mmwave.gesture.recognition
+  git clone https://github.com/zyx1121/mmwave-gesture-recognition && cd mmwave-gesture-recognition
   ```
 
 - Install dependencies
@@ -50,6 +50,7 @@ Flash the official demo firmware onto the AWR1642 development board before start
   - `console.py` - (Main entry point)
   - `mmwave.py` - (mmWave radar data processing)
   - `profile.cfg` - (Configuration settings)
+  - `requirements.txt` - (Dependencies)
 
 ## Command Functions
 
