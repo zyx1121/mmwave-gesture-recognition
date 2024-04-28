@@ -2,6 +2,8 @@
 
 ###### Gesture Recognition Using mmWave Sensor - TI AWR1642
 
+![gif](https://github.com/zyx1121/mmwave-gesture-recognition/assets/98001197/b271cdad-25c1-46b4-af98-e218882e354b)
+
 This project provides Setup, Record, Train, and Predict functionalities to identify specific gestures using the AWR1642 mmWave radar data. Supported gestures include:
 
 - Swipe Up
@@ -31,7 +33,7 @@ Flash the official demo firmware onto the AWR1642 development board before start
   pip install -r requirements.txt
   ```
 
-- Launch the console to begin
+- Launch the console to start!
   ```sh
   python console.py
   ```
@@ -39,18 +41,21 @@ Flash the official demo firmware onto the AWR1642 development board before start
 ## Project Structure
 
 - `mmwave.gesture.recognition/`
-  - `models/`
+  - `models/` - (Trained models)
     - `Conv2D.keras`
     - `LSTM.keras`
-  - `records/`
+  - `records/` - (Gesture data records)
     - `[label]_[%m%d%H%M%S].npy`
-  - `console.py`
-  - `mmwave.py`
-  - `profile.cfg`
+    - `...`
+  - `console.py` - (Main entry point)
+  - `mmwave.py` - (mmWave radar data processing)
+  - `profile.cfg` - (Configuration settings)
 
 ## Command Functions
 
 - `cfg` : Transmits settings from profile.cfg to the device.
+
+- `plot` : Plots the radar data in real-time.
 
 - `record` `[gesture]` `[times]` : Records the gesture [gesture] data [times] times and saves it to records/[gesture]_[date].npy.
 
