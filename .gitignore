@@ -1,0 +1,23 @@
+# Python cache files
+__pycache__
+
+# Records
+records/*.npy
+
+# Models
+models/*.keras
+
+# Package management files
+poetry.lock
+*.egg-info
+.dist
+build
+
+# IDE and editor specific files
+.vscode
+.cursorrules
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+desktop.ini
