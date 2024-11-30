@@ -19,9 +19,11 @@ This project provides Setup, Record, Train, and Predict functionalities to ident
 ## Prerequisites
 
 - Flash the official demo firmware onto the AWR1642 development board before starting.
+
     [Initial Setup for AWR1642BOOST](https://gist.github.com/zyx1121/0756055fa9138aec81617501e2e5f263)
 
 - Get `poetry` to manage the dependencies.
+
     ```sh
     curl -sSL https://install.python-poetry.org | python3 -
     ```
@@ -29,36 +31,43 @@ This project provides Setup, Record, Train, and Predict functionalities to ident
 ## Getting Started
 
 - Clone the repository and cd to the project directory
+
     ```sh
     git clone https://github.com/zyx1121/mmwave-gesture-recognition && cd mmwave-gesture-recognition
     ```
 
 - Install dependencies
+
     ```sh
     poetry install
     ```
 
 - Launch the console to start
+
     ```sh
     poetry run mmwave-gesture-recognition
     ```
 
 - Setup the AWR1642 development board
+
     ```sh
     CLI > cfg
     ```
 
 - Train the model
+
     ```sh
     CLI > train LSTM
     ```
 
 - Plot the radar data in real-time and press `q` to exit
+
     ```sh
     CLI > plot
     ```
 
 - Start predicting gestures and press `ctrl+c` to exit
+
     ```sh
     CLI > predict
     ```
